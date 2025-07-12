@@ -4,13 +4,17 @@ const cheerio = require('cheerio');
 const cors = require('cors');
 
 const app = express();
+
+// CORS setup
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type'],
 }));
-app.use(express.json());
 
+app.use(express.json()); // to parse application/json
+
+// Analyze Route – For Answer Key Parser
 app.post('/api/analyze', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'No URL provided' });
@@ -30,7 +34,6 @@ app.post('/api/analyze', async (req, res) => {
       sectionSummary: [],
     };
 
-    // Candidate Info
     $('table tr').each((i, row) => {
       const cells = $(row).find('td');
       if (cells.length >= 2) {
@@ -45,7 +48,6 @@ app.post('/api/analyze', async (req, res) => {
       }
     });
 
-    // Track current section by traversing siblings
     const sections = {};
     let currentSection = 'Unknown';
 
@@ -55,7 +57,7 @@ app.post('/api/analyze', async (req, res) => {
       if ($elem.hasClass('section-lbl')) {
         const label = $elem.find('.bold').first().text().trim();
         if (label) currentSection = label;
-        return; // skip to next
+        return;
       }
 
       if (!$elem.hasClass('rw')) return;
@@ -124,4 +126,18 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log('✅ Server running on http://localhost:5000'));
+// New Generic JSON Echo Route (for JSON Sender Tool)
+app.all('/api/echo', (req, res) => {
+  console.log('📩 Received API Call');
+  res.status(201).json({
+    method: req.method,
+    body: req.body,
+    message: 'Request received and echoed back successfully.',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Start server
+app.listen(5000, () => {
+  console.log('✅ Server running on http://localhost:5000');
+});
