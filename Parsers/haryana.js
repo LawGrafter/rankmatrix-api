@@ -35,20 +35,16 @@ module.exports = function parseHaryana($) {
   // Extract questions and sections
   let currentSection = 'Unknown';
 
-  $('.grp-cntnr').each((i, section) => {
-    // Extract section title more carefully
-    const sectionLabel = $(section).find('.section-lbl');
-    if (sectionLabel.length > 0) {
-      const sectionText = sectionLabel.text().trim();
-      // Extract the section name after "Section :"
-      const match = sectionText.match(/Section\s*:\s*(.+)/i);
-      if (match) {
-        currentSection = match[1].trim();
-      }
+  // Iterate through each section container
+  $('.section-cntnr').each((i, sectionContainer) => {
+    // Extract section title from the section label
+    const sectionLabel = $(sectionContainer).find('.section-lbl .bold').text().trim();
+    if (sectionLabel) {
+      currentSection = sectionLabel;
     }
 
     // Extract questions from this section
-    $(section).find('.question-pnl').each((j, questionPanel) => {
+    $(sectionContainer).find('.question-pnl').each((j, questionPanel) => {
       const question = {
         section: currentSection,
         questionText: '',
